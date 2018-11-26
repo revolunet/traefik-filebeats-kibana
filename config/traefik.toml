@@ -1,0 +1,37 @@
+
+defaultEntryPoints = ["http"]
+
+[entryPoints]
+  [entryPoints.http]
+    address = ":80"
+    compress = true
+    useXForwardedFor = true
+    # [entryPoints.http.whitelist]
+    #   sourceRange = ["10.42.0.0/16", "152.89.1.33/32", "afed:be44::/16"]
+    #   useXForwardedFor = true
+    [entryPoints.team]
+      [entryPoints.team.auth]
+        [entryPoints.team.auth.basic]
+          users = [
+            "test:$apr1$H6uskkkW$IgXLP6ewTrSuBkTrqE8wj/"
+          ]
+
+[docker]
+  endpoint = "unix:///var/run/docker.sock"
+  domain = "docker.localhost"
+  watch = true
+  exposedByDefault = true
+  usebindportip = true
+  swarmMode = false
+  network = "web"
+
+[logs]
+  logLevel = "INFO"
+  [traefikLog]
+    filePath = "/var/log/traefik/traefik.log"
+  [accessLog]
+    filePath = "/var/log/traefik/access.log"
+
+[api]
+  dashboard = true
+  entrypoint = "team"

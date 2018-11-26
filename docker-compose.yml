@@ -1,0 +1,49 @@
+version: "3.0"
+services:
+  traefik:
+    image: traefik:1.7
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8080:8080"
+    volumes:
+      - ./config/traefik.toml:/etc/traefik/traefik.toml
+      - ./logs:/var/log/traefik
+      - /var/run/docker.sock:/var/run/docker.sock
+  elasticsearch:
+    restart: always
+    image: docker.elastic.co/elasticsearch/elasticsearch:6.5.1
+    restart: always
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - esdata:/usr/share/elasticsearch/data
+      - ./config/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml
+  kibana:
+    restart: always
+    image: docker.elastic.co/kibana/kibana:6.5.1
+    labels:
+      - "traefik.frontend.rule=Host:kibana.docker.localhost"
+    depends_on:
+      - elasticsearch
+  filebeat:
+    restart: always
+    image: docker.elastic.co/beats/filebeat:6.5.1
+    volumes:
+      - ./config/filebeat.yml:/usr/share/filebeat/filebeat.yml
+      - ./logs:/var/log/traefik
+      - filebeatdata:/usr/share/filebeat/data/
+      - /var/run/docker.sock:/var/run/docker.sock
+    depends_on:
+      - kibana
+  whoami:
+    image: containous/whoami
+    labels:
+      - "traefik.frontend.rule=Host:whoami.docker.localhost"
+
+volumes:
+  filebeatdata:
+  esdata:
